@@ -6,6 +6,7 @@ import {
   User, Briefcase, FolderKanban, Image as ImageIcon,
   Award, Tags, Inbox, LogOut, Plus, Trash2, Save, RefreshCw,
   ExternalLink, Pencil, X, Upload, GraduationCap, PenLine, Sparkles,
+  Eye, EyeOff,
 } from 'lucide-react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -325,6 +326,9 @@ const TABLES = {
 export default function Admin() {
   const [session, setSession] = useState(null);
   const [login, setLogin] = useState({ email: '', password: '' });
+  const [showPw, setShowPw] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [tab, setTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
@@ -434,6 +438,24 @@ export default function Admin() {
     if (!error) loadAll();
   }
 
+  async function sendReset(e) {
+    e.preventDefault();
+    setMsg('');
+    if (!login.email) {
+      setMsg('Enter your email first, then request a reset link.');
+      return;
+    }
+    const { error } = await sb.auth.resetPasswordForEmail(login.email, {
+      redirectTo: `${window.location.origin}/admin/reset`,
+    });
+    if (error) {
+      setMsg('Recovery failed: ' + error.message);
+    } else {
+      setResetSent(true);
+      setMsg('');
+    }
+  }
+
   async function saveTopics(e) {
     e.preventDefault();
     const list = topicsText.split('\n').map((t) => t.trim()).filter(Boolean);
@@ -521,8 +543,31 @@ export default function Admin() {
           <h1 className="font-display mt-2 text-2xl font-extrabold">Sign in</h1>
           <div className="mt-5 grid gap-3">
             <input className={inputCls} placeholder="Email" type="email" value={login.email} onChange={(e) => setLogin({ ...login, email: e.target.value })} />
-            <input className={inputCls} placeholder="Password" type="password" value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} />
-            <button className="rounded-xl bg-deepsea py-3 font-bold text-white hover:bg-seafoam-dark">Sign in</button>
+            {!forgot ? (
+              <>
+                <div className="relative">
+                  <input className={`${inputCls} pr-12`} placeholder="Password" type={showPw ? 'text' : 'password'} value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} />
+                  <button type="button" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-deepsea/50 transition hover:text-seafoam-dark">
+                    {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+                <button className="rounded-xl bg-deepsea py-3 font-bold text-white hover:bg-seafoam-dark">Sign in</button>
+                <button type="button" onClick={() => { setForgot(true); setMsg(''); }} className="text-sm font-bold text-seafoam-dark hover:underline">
+                  Forgot password?
+                </button>
+              </>
+            ) : resetSent ? (
+              <p className="rounded-xl bg-seafoam-pale p-4 text-sm font-semibold text-deepsea">
+                Recovery link sent to {login.email || 'your email'}. Open it to set a new password.
+              </p>
+            ) : (
+              <>
+                <button onClick={sendReset} className="rounded-xl bg-deepsea py-3 font-bold text-white hover:bg-seafoam-dark">Send recovery link</button>
+                <button type="button" onClick={() => { setForgot(false); setMsg(''); }} className="text-sm font-bold text-seafoam-dark hover:underline">
+                  Back to sign in
+                </button>
+              </>
+            )}
             {msg && <p className="text-sm font-semibold text-red-600">{msg}</p>}
           </div>
         </form>

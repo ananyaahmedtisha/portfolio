@@ -63,14 +63,15 @@ const SEGMENTS = [
   { href: '/gallery', icon: Camera, t: 'Curated Gallery', d: 'Selected photography, art and design work.' },
 ];
 
-const FOCUS_AREAS = ['Food Microbiology', 'AMR Awareness', 'Dairy Fermentation', '3D Science Animation', 'Public Health'];
+const FALLBACK_TOPICS = ['Food Microbiology', 'AMR Awareness', 'Dairy Fermentation', '3D Science Animation', 'Public Health'];
 
-function Typewriter() {
+function Typewriter({ items }) {
+  const words = items?.length ? items : FALLBACK_TOPICS;
   const [text, setText] = useState('');
   useEffect(() => {
     let word = 0, char = 0, deleting = false, timer;
     function step() {
-      const current = FOCUS_AREAS[word];
+      const current = words[word % words.length];
       if (!deleting) {
         char += 1;
         setText(current.slice(0, char));
@@ -85,7 +86,7 @@ function Typewriter() {
         setText(current.slice(0, char));
         if (char === 0) {
           deleting = false;
-          word = (word + 1) % FOCUS_AREAS.length;
+          word = (word + 1) % words.length;
           timer = setTimeout(step, 350);
           return;
         }
@@ -94,7 +95,7 @@ function Typewriter() {
     }
     timer = setTimeout(step, 500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [words.join('|')]);
   return (
     <span>
       <span className="font-bold text-seafoam-dark">{text}</span>
@@ -109,6 +110,7 @@ export default function Home() {
   const [exp0, setExp0] = useState(FB_EXP[0]);
   const [proj0, setProj0] = useState(FB_PROJ[0]);
   const [ach0, setAch0] = useState(FB_ACH[0]);
+  const [topics, setTopics] = useState(FALLBACK_TOPICS);
 
   useEffect(() => {
     const sb = getSupabaseBrowser();
@@ -142,6 +144,8 @@ export default function Home() {
         if (projs?.length) setProj0({ title: projs[0].title, description: projs[0].description, id: projs[0].id });
         const { data: achs } = await sb.from('achievements').select('*').order('sort_order').limit(1);
         if (achs?.length) setAch0({ title: achs[0].title, description: achs[0].description, id: achs[0].id });
+        const { data: settings } = await sb.from('site_settings').select('exploring_topics').eq('id', 1).maybeSingle();
+        if (settings?.exploring_topics?.length) setTopics(settings.exploring_topics);
       } catch {}
     })();
   }, []);
@@ -171,7 +175,7 @@ export default function Home() {
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={3} className="tjustify mt-4 max-w-2xl leading-relaxed text-deepsea/70">{profile.bio}</motion.p>
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={4} className="mt-4 text-[15px] text-deepsea/75">
               <span className="mr-2 inline-block text-seafoam-dark">▸</span>
-              Exploring: <Typewriter />
+              Exploring: <Typewriter items={topics} />
             </motion.p>
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={5} className="mt-3 text-sm font-medium text-deepsea/55">
               {profile.university} · {profile.degree}

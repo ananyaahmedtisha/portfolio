@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   User, Briefcase, FolderKanban, Image as ImageIcon,
   Award, Tags, Inbox, LogOut, Plus, Trash2, Save, RefreshCw,
-  ExternalLink, Pencil, X, Upload, GraduationCap, PenLine,
+  ExternalLink, Pencil, X, Upload, GraduationCap, PenLine, Sparkles,
 } from 'lucide-react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,6 +15,7 @@ const sb = configured ? createClient(url, anon) : null;
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
+  { id: 'homepage', label: 'Homepage', icon: Sparkles },
   { id: 'academics', label: 'Academics', icon: GraduationCap },
   { id: 'experiences', label: 'Experience', icon: Briefcase },
   { id: 'projects', label: 'Projects', icon: FolderKanban },
@@ -329,6 +330,7 @@ export default function Admin() {
   const [msg, setMsg] = useState('');
   const [rows, setRows] = useState({ experiences: [], experience_photos: [], projects: [], portfolio_items: [], achievements: [], skills: [], messages: [], profile: null, academics: [], blog_posts: [] });
   const [profileForm, setProfileForm] = useState(null);
+  const [topicsText, setTopicsText] = useState('');
 
   useEffect(() => {
     if (!sb) return;
@@ -341,7 +343,7 @@ export default function Admin() {
     if (!sb) return;
     setLoading(true);
     try {
-      const [exp, expPhotos, proj, port, ach, ski, inbox, prof, acad, blogs] = await Promise.all([
+      const [exp, expPhotos, proj, port, ach, ski, inbox, prof, acad, blogs, settings] = await Promise.all([
         sb.from('experiences').select('*').order('sort_order'),
         sb.from('experience_photos').select('*').order('sort_order'),
         sb.from('projects').select('*').order('sort_order'),
@@ -352,6 +354,7 @@ export default function Admin() {
         sb.from('profile').select('*').limit(1).single(),
         sb.from('academics').select('*').order('sort_order'),
         sb.from('blog_posts').select('*').order('created_at', { ascending: false }),
+        sb.from('site_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
       const withTags = (proj.data || []).map((p) => ({ ...p, tags_text: (p.tags || []).join(', ') }));
       setRows({
@@ -367,6 +370,7 @@ export default function Admin() {
         blog_posts: blogs.data || [],
       });
       if (prof.data) setProfileForm(prof.data);
+      if (settings.data?.exploring_topics) setTopicsText(settings.data.exploring_topics.join('\n'));
     } catch (e) {
       setMsg('Load error: ' + e.message);
     }
@@ -420,6 +424,13 @@ export default function Admin() {
     setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
     setLoading(false);
     if (!error) loadAll();
+  }
+
+  async function saveTopics(e) {
+    e.preventDefault();
+    const list = topicsText.split('\n').map((t) => t.trim()).filter(Boolean);
+    const { error } = await sb.from('site_settings').update({ exploring_topics: list }).eq('id', 1);
+    setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
   }
 
   /* Experience photos sub-editor */
@@ -563,7 +574,7 @@ export default function Admin() {
             </form>
           )}
 
-          {tab !== 'profile' && tab !== 'inbox' && (
+          {tab !== 'profile' && tab !== 'homepage' && tab !== 'inbox' && (
             <div className="glass rounded-2xl p-5">
               <h2 className="font-display mb-4 text-lg font-extrabold">{TABS.find((t) => t.id === tab)?.label}</h2>
               <CrudSection
@@ -579,6 +590,20 @@ export default function Admin() {
                 extraEditor={tab === 'experiences' ? (draft, set) => <ExperiencePhotos experienceId={draft.id} /> : null}
               />
             </div>
+          )}
+
+          {tab === 'homepage' && (
+            <form onSubmit={saveTopics} className="glass rounded-2xl p-6">
+              <h2 className="font-display text-lg font-extrabold">Exploring topics</h2>
+              <p className="mt-1 text-sm text-deepsea/60">One topic per line — these rotate after “Exploring:” on the homepage.</p>
+              <div className="mt-4">
+                <Field label="Topics">
+                  <textarea rows={6} className={inputCls} value={topicsText} onChange={(e) => setTopicsText(e.target.value)} placeholder={'Food Microbiology\nAMR Awareness'} />
+                </Field>
+              </div>
+              <button className="mt-4 flex items-center gap-2 rounded-xl bg-seafoam px-6 py-3 font-bold text-white hover:bg-seafoam-dark"><Save size={16} /> Save</button>
+              {msg && <p className={`mt-2 text-sm font-semibold ${msg.includes('failed') ? 'text-red-600' : 'text-seafoam-dark'}`}>{msg}</p>}
+            </form>
           )}
 
           {tab === 'inbox' && (

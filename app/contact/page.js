@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, Linkedin, Send } from 'lucide-react';
+import { Mail, Linkedin, Send } from 'lucide-react';
 import { PROFILE } from '@/lib/siteData';
 import { SectionHead } from '@/components/ui';
 
@@ -27,7 +27,6 @@ export default function ContactPage() {
           <h2 className="font-display text-2xl font-extrabold">Direct lines</h2>
           <div className="mt-6 space-y-4 text-sm">
             <a href={`mailto:${PROFILE.email}`} className="flex items-center gap-3 rounded-2xl bg-white/10 p-4 transition hover:bg-white/20"><Mail /> {PROFILE.email}</a>
-            <a href={`tel:${PROFILE.phone}`} className="flex items-center gap-3 rounded-2xl bg-white/10 p-4 transition hover:bg-white/20"><Phone /> {PROFILE.phone}</a>
             <a href={`https://${PROFILE.linkedin}`} target="_blank" className="flex items-center gap-3 rounded-2xl bg-white/10 p-4 transition hover:bg-white/20"><Linkedin /> {PROFILE.linkedin}</a>
           </div>
           <p className="mt-8 text-xs text-white/55">Hire for: research internships · FoodSense collabs · science communication · poster/design work.</p>

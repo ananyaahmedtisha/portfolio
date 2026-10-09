@@ -205,7 +205,6 @@ export default function Home() {
             </div>
             <div className="mt-4 text-center">
               <a href={`mailto:${profile.email}`} className="font-display block truncate text-sm font-bold transition hover:text-seafoam-dark">{profile.email}</a>
-              <a href={`tel:${profile.phone}`} className="mt-1 block text-sm text-deepsea/60 transition hover:text-seafoam-dark">{profile.phone}</a>
             </div>
           </motion.div>
         </div>

@@ -181,7 +181,7 @@ export default function Home() {
                 Explore Project ↗
               </Link>
               {profile.resume_url ? (
-                <a href={profile.resume_url} target="_blank" className="rounded-full bg-deepsea px-6 py-3 font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
+                <a href={profile.resume_url} download="Ananya-Ahmed-Tisha-CV.pdf" className="rounded-full bg-deepsea px-6 py-3 font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
                   Download CV ↓
                 </a>
               ) : (

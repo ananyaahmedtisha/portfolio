@@ -177,6 +177,9 @@ export default function Home() {
               {profile.university} · {profile.degree}
             </motion.p>
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6} className="mt-6 flex flex-wrap gap-3">
+              <Link href="/projects" className="rounded-full bg-seafoam px-6 py-3 font-display text-sm font-bold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
+                Explore Project ↗
+              </Link>
               {profile.resume_url ? (
                 <a href={profile.resume_url} target="_blank" className="rounded-full bg-deepsea px-6 py-3 font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
                   Download CV ↓
@@ -189,12 +192,6 @@ export default function Home() {
               <Link href="/contact" className="rounded-full border border-deepsea/25 px-6 py-3 font-display text-sm font-bold transition hover:-translate-y-0.5 hover:border-seafoam hover:text-seafoam-dark dark:border-white/25">
                 Contact Me
               </Link>
-              <a href={`https://${profile.linkedin}`} target="_blank" className="rounded-full border border-deepsea/25 px-6 py-3 font-display text-sm font-bold transition hover:-translate-y-0.5 hover:border-seafoam hover:text-seafoam-dark dark:border-white/25">
-                LinkedIn ↗
-              </a>
-              <a href={`mailto:${profile.email}`} className="rounded-full border border-deepsea/25 px-6 py-3 font-display text-sm font-bold transition hover:-translate-y-0.5 hover:border-seafoam hover:text-seafoam-dark dark:border-white/25">
-                Email ↗
-              </a>
             </motion.div>
           </div>
 

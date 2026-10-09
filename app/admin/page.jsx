@@ -331,6 +331,7 @@ export default function Admin() {
   const [rows, setRows] = useState({ experiences: [], experience_photos: [], projects: [], portfolio_items: [], achievements: [], skills: [], messages: [], profile: null, academics: [], blog_posts: [] });
   const [profileForm, setProfileForm] = useState(null);
   const [topicsText, setTopicsText] = useState('');
+  const [heroFields, setHeroFields] = useState({ status_pill: '', role_line_1: '', role_line_2: '' });
 
   useEffect(() => {
     if (!sb) return;
@@ -371,6 +372,13 @@ export default function Admin() {
       });
       if (prof.data) setProfileForm(prof.data);
       if (settings.data?.exploring_topics) setTopicsText(settings.data.exploring_topics.join('\n'));
+      if (settings.data) {
+        setHeroFields({
+          status_pill: settings.data.status_pill || '',
+          role_line_1: settings.data.role_line_1 || '',
+          role_line_2: settings.data.role_line_2 || '',
+        });
+      }
     } catch (e) {
       setMsg('Load error: ' + e.message);
     }
@@ -429,7 +437,12 @@ export default function Admin() {
   async function saveTopics(e) {
     e.preventDefault();
     const list = topicsText.split('\n').map((t) => t.trim()).filter(Boolean);
-    const { error } = await sb.from('site_settings').update({ exploring_topics: list }).eq('id', 1);
+    const { error } = await sb.from('site_settings').update({
+      exploring_topics: list,
+      status_pill: heroFields.status_pill || null,
+      role_line_1: heroFields.role_line_1 || null,
+      role_line_2: heroFields.role_line_2 || null,
+    }).eq('id', 1);
     setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
   }
 
@@ -596,7 +609,16 @@ export default function Admin() {
             <form onSubmit={saveTopics} className="glass rounded-2xl p-6">
               <h2 className="font-display text-lg font-extrabold">Exploring topics</h2>
               <p className="mt-1 text-sm text-deepsea/60">One topic per line — these rotate after “Exploring:” on the homepage.</p>
-              <div className="mt-4">
+              <div className="mt-4 grid gap-4">
+                <Field label="Status pill">
+                  <input className={inputCls} value={heroFields.status_pill} onChange={(e) => setHeroFields({ ...heroFields, status_pill: e.target.value })} placeholder="Open to Opportunities · Dhaka, Bangladesh" />
+                </Field>
+                <Field label="Role line 1">
+                  <input className={inputCls} value={heroFields.role_line_1} onChange={(e) => setHeroFields({ ...heroFields, role_line_1: e.target.value })} placeholder="BSc in Microbiology · BRAC University" />
+                </Field>
+                <Field label="Role line 2">
+                  <input className={inputCls} value={heroFields.role_line_2} onChange={(e) => setHeroFields({ ...heroFields, role_line_2: e.target.value })} placeholder="Millennium Fellow · Project Manager & Science Communicator" />
+                </Field>
                 <Field label="Topics">
                   <textarea rows={6} className={inputCls} value={topicsText} onChange={(e) => setTopicsText(e.target.value)} placeholder={'Food Microbiology\nAMR Awareness'} />
                 </Field>

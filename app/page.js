@@ -111,6 +111,7 @@ export default function Home() {
   const [proj0, setProj0] = useState(FB_PROJ[0]);
   const [ach0, setAch0] = useState(FB_ACH[0]);
   const [topics, setTopics] = useState(FALLBACK_TOPICS);
+  const [heroLines, setHeroLines] = useState({ line1: '', line2: '', pill: '' });
 
   useEffect(() => {
     const sb = getSupabaseBrowser();
@@ -144,8 +145,15 @@ export default function Home() {
         if (projs?.length) setProj0({ title: projs[0].title, description: projs[0].description, id: projs[0].id });
         const { data: achs } = await sb.from('achievements').select('*').order('sort_order').limit(1);
         if (achs?.length) setAch0({ title: achs[0].title, description: achs[0].description, id: achs[0].id });
-        const { data: settings } = await sb.from('site_settings').select('exploring_topics').eq('id', 1).maybeSingle();
+        const { data: settings } = await sb.from('site_settings').select('exploring_topics,role_line_1,role_line_2,status_pill').eq('id', 1).maybeSingle();
         if (settings?.exploring_topics?.length) setTopics(settings.exploring_topics);
+        if (settings) {
+          setHeroLines({
+            line1: settings.role_line_1 || '',
+            line2: settings.role_line_2 || '',
+            pill: settings.status_pill || '',
+          });
+        }
       } catch {}
     })();
   }, []);
@@ -163,14 +171,14 @@ export default function Home() {
                 <span className="absolute h-full w-full animate-ping rounded-full bg-seafoam opacity-60" />
                 <span className="h-2.5 w-2.5 rounded-full bg-seafoam-dark" />
               </span>
-              Open to Opportunities · Dhaka, Bangladesh
+              {heroLines.pill || 'Open to Opportunities · Dhaka, Bangladesh'}
             </motion.div>
             <motion.h1 variants={fadeUp} initial="hidden" animate="show" custom={1} className="font-display mt-5 text-4xl font-extrabold leading-[1.04] md:text-6xl">
               Ananya Ahmed <span className="bg-gradient-to-r from-seafoam-dark to-seafoam bg-clip-text text-transparent">Tisha</span>
             </motion.h1>
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={2} className="font-display mt-4 space-y-1 text-base font-bold md:text-lg">
-              <p>{profile.degree} · {profile.university}</p>
-              <p>Millennium Fellow · Project Manager & Science Communicator</p>
+              <p>{heroLines.line1 || `${profile.degree} · ${profile.university}`}</p>
+              <p>{heroLines.line2 || 'Millennium Fellow · Project Manager & Science Communicator'}</p>
             </motion.div>
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={3} className="tjustify mt-4 max-w-2xl leading-relaxed text-deepsea/70">{profile.bio}</motion.p>
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={4} className="mt-4 text-[15px] text-deepsea/75">

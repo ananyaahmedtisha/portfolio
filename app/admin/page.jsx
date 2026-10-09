@@ -441,11 +441,21 @@ export default function Admin() {
   async function sendReset(e) {
     e.preventDefault();
     setMsg('');
-    if (!login.email) {
+    const email = login.email.trim().toLowerCase();
+    if (!email) {
       setMsg('Enter your email first, then request a reset link.');
       return;
     }
-    const { error } = await sb.auth.resetPasswordForEmail(login.email, {
+    const { data: allowed } = await sb
+      .from('admin_allowlist')
+      .select('email')
+      .ilike('email', email)
+      .maybeSingle();
+    if (!allowed) {
+      setMsg('This email is not registered as an admin. Recovery link not sent.');
+      return;
+    }
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/admin/reset`,
     });
     if (error) {

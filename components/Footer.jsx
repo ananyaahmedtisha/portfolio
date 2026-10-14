@@ -13,7 +13,7 @@ const EXPLORE = [
 export default function Footer() {
   return (
     <footer className="mx-auto max-w-7xl px-4 pb-10 md:px-6">
-      <div className="glass rounded-[2rem] px-8 py-10 shadow-blue-soft md:px-14">
+      <div className="glass rounded-[2rem] px-5 py-6 shadow-blue-soft sm:px-8 sm:py-10 md:px-14">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
             <p className="font-display text-xl font-extrabold">{PROFILE.full_name}</p>

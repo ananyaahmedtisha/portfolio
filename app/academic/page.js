@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { GraduationCap } from 'lucide-react';
 import { getAcademics } from '@/lib/liveData';
 import { SectionHead } from '@/components/ui';
 import Reveal from '@/components/Reveal';
-import LightImage from '@/components/LightImage';
 
 export const metadata = { title: 'Ananya Ahmed Tisha' };
 export const revalidate = 60;
@@ -18,7 +18,7 @@ export default async function AcademicPage() {
           <Reveal key={a.id} delay={i % 3}>
             <article className="glass h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
               {a.image_url ? (
-                <LightImage src={a.image_url} alt={a.institution} caption={a.institution} className="h-44 w-full object-cover" />
+                <img src={a.image_url} alt={a.institution} className="h-44 w-full object-cover" />
               ) : (
                 <div className="flex h-44 items-center justify-center bg-gradient-to-br from-seafoam-pale to-alice text-seafoam-dark"><GraduationCap size={40} /></div>
               )}

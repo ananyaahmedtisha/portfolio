@@ -470,12 +470,14 @@ export default function Admin() {
         sb.from('achievements').select('*').order('sort_order'),
         sb.from('skills').select('*').order('sort_order'),
         sb.from('messages').select('*').order('created_at', { ascending: false }),
-        sb.from('profile').select('*').limit(1).single(),
+        sb.from('profile').select('*').order('updated_at', { ascending: false }),
         sb.from('academics').select('*').order('sort_order'),
         sb.from('blog_posts').select('*').order('created_at', { ascending: false }),
         sb.from('site_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
       const withTags = (proj.data || []).map((p) => ({ ...p, tags_text: (p.tags || []).join(', ') }));
+      const profRows = prof.data || [];
+      const bestProf = [...profRows].sort((a, b) => ((b.resume_url ? 2 : 0) + (b.portrait_url ? 1 : 0)) - ((a.resume_url ? 2 : 0) + (a.portrait_url ? 1 : 0)))[0] || null;
       setRows({
         experiences: exp.data || [],
         experience_photos: expPhotos.data || [],
@@ -484,11 +486,11 @@ export default function Admin() {
         achievements: ach.data || [],
         skills: ski.data || [],
         messages: inbox.data || [],
-        profile: prof.data || null,
+        profile: bestProf,
         academics: acad.data || [],
         blog_posts: blogs.data || [],
       });
-      if (prof.data) setProfileForm(prof.data);
+      if (bestProf) setProfileForm(bestProf);
       if (settings.data?.exploring_topics) setTopicsText(settings.data.exploring_topics.join('\n'));
       if (settings.data) {
         setHeroFields({
@@ -583,13 +585,20 @@ export default function Admin() {
   async function saveTopics(e) {
     e.preventDefault();
     const list = topicsText.split('\n').map((t) => t.trim()).filter(Boolean);
-    const { error } = await sb.from('site_settings').update({
-      exploring_topics: list,
-      status_pill: heroFields.status_pill || null,
-      role_line_1: heroFields.role_line_1 || null,
-      role_line_2: heroFields.role_line_2 || null,
-    }).eq('id', 1);
-    setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
+    const payload = { exploring_topics: list };
+    if (heroFields.status_pill) payload.status_pill = heroFields.status_pill;
+    if (heroFields.role_line_1) payload.role_line_1 = heroFields.role_line_1;
+    if (heroFields.role_line_2) payload.role_line_2 = heroFields.role_line_2;
+    let { error } = await sb.from('site_settings').update(payload).eq('id', 1);
+    if (error && error.message.includes('schema cache')) {
+      const retry = await sb.from('site_settings').update({ exploring_topics: list }).eq('id', 1);
+      error = retry.error;
+    }
+    if (error && error.message.includes('schema cache')) {
+      setMsg('Save failed: new Homepage columns are missing. Run supabase/migration_v3.sql and migration_v4.sql in Supabase SQL Editor, then Save again.');
+    } else {
+      setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
+    }
   }
 
   /* Every uploaded picture across all segments */
@@ -755,9 +764,9 @@ export default function Admin() {
       </header>
 
       <div className="mx-auto grid max-w-7xl gap-5 px-4 py-6 lg:grid-cols-[220px_1fr]">
-        <aside className="glass h-fit rounded-2xl p-3 lg:sticky lg:top-20">
+        <aside className="glass grid h-fit grid-cols-2 gap-1.5 rounded-2xl p-3 lg:sticky lg:top-20 lg:grid-cols-1">
           {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} className={`flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-bold transition ${tab === t.id ? 'bg-deepsea text-white' : 'text-deepsea/70 hover:bg-seafoam-pale'}`}>
+            <button key={t.id} onClick={() => setTab(t.id)} className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2.5 text-[13px] font-bold transition sm:px-3.5 sm:text-sm ${tab === t.id ? 'bg-deepsea text-white' : 'text-deepsea/70 hover:bg-seafoam-pale'}`}>
               <t.icon size={16} /> {t.label}
               {t.id === 'inbox' && unread > 0 && (
                 <span className="ml-auto rounded-full bg-seafoam px-2 py-0.5 text-[11px] text-white">{unread}</span>

@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { getBlogPosts } from '@/lib/liveData';
 import { SectionHead } from '@/components/ui';
 import Reveal from '@/components/Reveal';
-import LightImage from '@/components/LightImage';
 
 export const metadata = { title: 'Ananya Ahmed Tisha' };
 export const revalidate = 60;
@@ -18,7 +18,7 @@ export default async function BlogPage() {
           <Reveal key={b.id} delay={i % 3}>
             <Link href={`/blog/${b.id}`} className="glass block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
               {b.cover ? (
-                <LightImage src={b.cover} alt={b.title} caption={b.title} className="h-44 w-full object-cover" />
+                <img src={b.cover} alt={b.title} className="h-44 w-full object-cover" />
               ) : (
                 <div className="h-44 bg-gradient-to-br from-seafoam-pale to-alice" />
               )}

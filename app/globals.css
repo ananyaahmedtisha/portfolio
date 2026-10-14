@@ -63,8 +63,13 @@ body {
 .no-scrollbar { scrollbar-width: none; }
 
 .tjustify {
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: left;
+}
+@media (min-width: 768px) {
+  .tjustify {
+    text-align: justify;
+    text-justify: inter-word;
+  }
 }
 
 .hero-grid {

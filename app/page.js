@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -6,7 +7,6 @@ import Link from 'next/link';
 import { ArrowUpRight, Download, Briefcase, GraduationCap, Award, Camera, PenLine, FolderKanban, Sparkles } from 'lucide-react';
 import { PROFILE as FB_PROFILE, PORTFOLIO as FB_PORTFOLIO, EXPERIENCES as FB_EXP, PROJECTS as FB_PROJ, ACHIEVEMENTS as FB_ACH, BLOG_POSTS as FB_BLOG } from '@/lib/siteData';
 import { getSupabaseBrowser } from '@/lib/supabaseClient';
-import LightImage from '@/components/LightImage';
 import { SectionHead, fadeUp } from '@/components/ui';
 import { MovingGallery } from '@/components/MovingGallery';
 
@@ -119,17 +119,18 @@ export default function Home() {
     if (!sb) return;
     (async () => {
       try {
-        const { data: prof } = await sb.from('profile').select('*').order('created_at').limit(1).maybeSingle();
-        if (prof) {
+        const { data: prof } = await sb.from('profile').select('*').order('updated_at', { ascending: false });
+        const best = prof && prof.length ? [...prof].sort((a, b) => ((b.resume_url ? 2 : 0) + (b.portrait_url ? 1 : 0)) - ((a.resume_url ? 2 : 0) + (a.portrait_url ? 1 : 0)))[0] : null;
+        if (best) {
           setProfile((p) => ({
             ...p,
-            full_name: prof.full_name || p.full_name,
-            tagline: prof.tagline || p.tagline,
-            bio: prof.bio || p.bio,
-            portrait_url: prof.portrait_url || prof.hero_image_url || p.portrait_url,
-            resume_url: prof.resume_url || '',
-            university: prof.university || p.university,
-            cgpa: prof.cgpa ?? p.cgpa,
+            full_name: best.full_name || p.full_name,
+            tagline: best.tagline || p.tagline,
+            bio: best.bio || p.bio,
+            portrait_url: best.portrait_url || best.hero_image_url || p.portrait_url,
+            resume_url: best.resume_url || '',
+            university: best.university || p.university,
+            degree: best.degree || p.degree,
           }));
         }
         const { data: port } = await sb.from('portfolio_items').select('*').order('sort_order');
@@ -161,7 +162,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
       {/* HERO */}
-      <section className="hero-gradient relative overflow-hidden rounded-[2rem] border border-white/60 p-7 shadow-blue-soft md:p-12 dark:border-white/10">
+      <section className="hero-gradient relative overflow-hidden rounded-[1.5rem] border border-white/60 p-5 shadow-blue-soft sm:p-7 md:rounded-[2rem] md:p-12 dark:border-white/10">
         <MicrobeField />
         <div className="hero-grid pointer-events-none absolute inset-0" />
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 animate-drift rounded-full bg-seafoam/20 blur-3xl" />
@@ -174,7 +175,7 @@ export default function Home() {
               </span>
               {heroLines.pill || 'Open to Opportunities · Dhaka, Bangladesh'}
             </motion.div>
-            <motion.h1 variants={fadeUp} initial="hidden" animate="show" custom={1} className="font-display mt-5 text-4xl font-extrabold leading-[1.04] md:text-6xl">
+            <motion.h1 variants={fadeUp} initial="hidden" animate="show" custom={1} className="font-display mt-5 text-[1.85rem] font-extrabold leading-[1.08] sm:text-4xl md:text-6xl">
               Ananya Ahmed <span className="bg-gradient-to-r from-seafoam-dark to-seafoam bg-clip-text text-transparent">Tisha</span>
             </motion.h1>
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={2} className="font-display mt-4 space-y-1 text-base font-bold md:text-lg">
@@ -189,28 +190,28 @@ export default function Home() {
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={5} className="mt-3 text-sm font-medium text-deepsea/55">
               {profile.university} · {profile.degree}
             </motion.p>
-            <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6} className="mt-6 flex flex-wrap gap-3">
-              <Link href="/projects" className="rounded-full bg-seafoam px-6 py-3 font-display text-sm font-bold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
+            <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6} className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link href="/projects" className="rounded-full bg-seafoam px-6 py-3 text-center font-display text-sm font-bold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
                 Explore Project ↗
               </Link>
               {profile.resume_url ? (
-                <a href={profile.resume_url} download="Ananya-Ahmed-Tisha-CV.pdf" className="rounded-full bg-deepsea px-6 py-3 font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
+                <a href={profile.resume_url} download="Ananya-Ahmed-Tisha-CV.pdf" className="rounded-full bg-deepsea px-6 py-3 text-center font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
                   Download CV ↓
                 </a>
               ) : (
-                <Link href="/contact" className="rounded-full bg-deepsea px-6 py-3 font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
+                <Link href="/contact" className="rounded-full bg-deepsea px-6 py-3 text-center font-display text-sm font-bold text-white shadow-blue-soft transition hover:-translate-y-0.5 hover:bg-seafoam-dark">
                   Download CV ↓
                 </Link>
               )}
-              <Link href="/contact" className="rounded-full border border-deepsea/25 px-6 py-3 font-display text-sm font-bold transition hover:-translate-y-0.5 hover:border-seafoam hover:text-seafoam-dark dark:border-white/25">
+              <Link href="/contact" className="rounded-full border border-deepsea/25 px-6 py-3 text-center font-display text-sm font-bold transition hover:-translate-y-0.5 hover:border-seafoam hover:text-seafoam-dark dark:border-white/25">
                 Contact Me
               </Link>
             </motion.div>
           </div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="order-1 mx-auto w-full max-w-[320px]">
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="order-1 mx-auto w-full max-w-[240px] sm:max-w-[320px]">
             <div className="glass overflow-hidden rounded-[2rem] p-2.5 shadow-blue-soft">
-              <LightImage src={profile.portrait_url} alt={profile.full_name} caption={profile.full_name} className="aspect-[4/5] w-full rounded-[1.6rem] object-cover" />
+              <img src={profile.portrait_url} alt={profile.full_name} className="aspect-[4/5] w-full rounded-[1.6rem] object-cover" />
             </div>
             <div className="mt-4 text-center">
               <a href={`mailto:${profile.email}`} className="font-display block truncate text-sm font-bold transition hover:text-seafoam-dark">{profile.email}</a>
@@ -275,7 +276,7 @@ export default function Home() {
           {FB_BLOG.map((b, i) => (
             <motion.div key={b.id} variants={fadeUp} initial="hidden" whileInView="show" custom={i} viewport={{ once: true }}>
               <Link href={`/blog/${b.id}`} className="glass block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
-                <LightImage src={b.cover} alt={b.title} caption={b.title} className="h-40 w-full object-cover" />
+                <img src={b.cover} alt={b.title} className="h-40 w-full object-cover" />
                 <span className="block p-5">
                   <span className="font-display block font-extrabold">{b.title}</span>
                   <span className="mt-1 block text-sm text-deepsea/60">{b.excerpt}</span>

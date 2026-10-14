@@ -15,7 +15,7 @@ export function SectionHead({ kicker, title, sub }) {
       <div className="mb-3 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-seafoam-dark">
         <Sparkles size={14} /> {kicker}
       </div>
-      <h1 className="font-display text-3xl font-extrabold leading-tight md:text-5xl">{title}</h1>
+      <h1 className="font-display text-[1.65rem] font-extrabold leading-snug md:text-5xl md:leading-tight">{title}</h1>
       {sub && <p className="font-serif2 mt-3 text-lg italic text-deepsea/65">{sub}</p>}
     </motion.div>
   );

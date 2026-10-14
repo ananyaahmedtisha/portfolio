@@ -23,7 +23,7 @@ export default function ContactPage() {
     <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
       <SectionHead kicker="Contact" title="Get in Touch" sub="For research opportunities, collaborations and commissions." />
       <div className="glass grid overflow-hidden rounded-[2rem] shadow-blue-soft md:grid-cols-2">
-        <div className="bg-gradient-to-br from-deepsea via-deepsea-800 to-seafoam-dark p-8 text-white md:p-12">
+        <div className="bg-gradient-to-br from-deepsea via-deepsea-800 to-seafoam-dark p-5 text-white sm:p-8 md:p-12">
           <h2 className="font-display text-2xl font-extrabold">Direct lines</h2>
           <div className="mt-6 space-y-4 text-sm">
             <a href={`mailto:${PROFILE.email}`} className="flex items-center gap-3 rounded-2xl bg-white/10 p-4 transition hover:bg-white/20"><Mail /> {PROFILE.email}</a>
@@ -31,7 +31,7 @@ export default function ContactPage() {
           </div>
           <p className="mt-8 text-xs text-white/55">Hire for: research internships · FoodSense collabs · science communication · poster/design work.</p>
         </div>
-        <form onSubmit={submit} className="bg-white/70 p-8 md:p-12">
+        <form onSubmit={submit} className="bg-white/70 p-5 sm:p-8 md:p-12">
           <h3 className="font-display text-xl font-extrabold">Send a message</h3>
           <p className="text-sm text-deepsea/60">I typically respond within a few days.</p>
           <div className="mt-5 grid gap-4">

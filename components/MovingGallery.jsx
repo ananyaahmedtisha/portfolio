@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import LightImage from '@/components/LightImage';
+import Link from 'next/link';
 
-/* Infinite moving photo strip — click any frame for fullscreen */
+/* Infinite moving photo strip — click a frame to open its gallery page */
 export function MovingGallery({ items }) {
   const [failed, setFailed] = useState({});
   const row = (items || []).filter((p) => p.media_url && p.show_on_home !== false && !failed[p.id]);
@@ -13,11 +13,12 @@ export function MovingGallery({ items }) {
     <div className="overflow-hidden rounded-3xl">
       <div className="flex w-max animate-marquee gap-4 py-2">
         {doubled.map((p, i) => (
-          <div key={`${p.id}-${i}`} className="group relative block h-64 w-52 shrink-0 overflow-hidden rounded-2xl bg-deepsea-900 shadow-card md:h-72 md:w-64">
-            <LightImage
+          <Link key={`${p.id}-${i}`} href={`/gallery/${p.id}`} className="group relative block h-52 w-40 shrink-0 overflow-hidden rounded-2xl bg-deepsea-900 shadow-card sm:h-64 sm:w-52 md:h-72 md:w-64">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={p.media_url}
               alt={p.title}
-              caption={`${p.title}${p.year ? ` · ${p.year}` : ''}`}
+              loading="lazy"
               onError={() => setFailed((f) => ({ ...f, [p.id]: true }))}
               className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
             />
@@ -25,7 +26,7 @@ export function MovingGallery({ items }) {
               <span className="font-display block truncate text-xs font-bold">{p.title}</span>
               <span className="block text-[11px] text-white/70">{p.category}{p.year ? ` · ${p.year}` : ''}</span>
             </span>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

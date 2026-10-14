@@ -1,8 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
 import { getProjects } from '@/lib/liveData';
-import LightImage from '@/components/LightImage';
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -21,9 +21,9 @@ export default async function ProjectDetail({ params }) {
       <Link href="/projects" className="text-sm font-bold text-seafoam-dark">← All projects</Link>
       <div className="glass mt-4 overflow-hidden rounded-3xl shadow-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.cover && <LightImage src={p.cover} alt={p.title} caption={p.title} className="h-72 w-full object-cover" />}
+        {p.cover && <img src={p.cover} alt={p.title} className="h-72 w-full object-cover" />}
         <div className="p-7">
-          <h1 className="font-display text-3xl font-extrabold">{p.title}</h1>
+          <h1 className="font-display text-2xl font-extrabold sm:text-3xl">{p.title}</h1>
           <p className="font-semibold text-seafoam-dark">{p.subtitle}</p>
           <p className="tjustify mt-4 leading-relaxed text-deepsea/75">{p.long || p.description}</p>
           <div className="mt-4 flex flex-wrap gap-2">{(p.tags || []).map((t) => <span key={t} className="rounded-full bg-white px-3 py-1 text-xs font-semibold">{t}</span>)}</div>
@@ -36,7 +36,7 @@ export default async function ProjectDetail({ params }) {
           <div className="mt-4 grid gap-5 md:grid-cols-2">
             {p.photos.map((ph, i) => (
               <figure key={i} className="glass overflow-hidden rounded-3xl shadow-card">
-                <LightImage src={ph.url} alt={ph.caption} caption={ph.caption} className="h-64 w-full object-cover" />
+                <img src={ph.url} alt={ph.caption} className="h-64 w-full object-cover" />
                 {ph.caption && <figcaption className="p-4 text-sm text-deepsea/70">{ph.caption}</figcaption>}
               </figure>
             ))}

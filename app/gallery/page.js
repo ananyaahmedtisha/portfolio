@@ -7,11 +7,10 @@ import LightImage from '@/components/LightImage';
 export const metadata = { title: 'Ananya Ahmed Tisha' };
 export const revalidate = 60;
 
-const CATS = ['All', 'Animation', 'Poster', 'Art', 'Photography'];
-
 export default async function GalleryPage({ searchParams }) {
   const PORTFOLIO = await getPortfolio();
   const f = searchParams?.cat || 'All';
+  const CATS = ['All', ...new Set(PORTFOLIO.map((p) => p.category).filter(Boolean))];
   const items = (f === 'All' ? PORTFOLIO : PORTFOLIO.filter((p) => p.category === f)).filter((p) => p.media_url && p.show_in_gallery !== false);
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6">

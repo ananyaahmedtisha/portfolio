@@ -177,6 +177,18 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
         </Field>
       );
     }
+    if (f.type === 'combo') {
+      const existing = [...new Set([...(f.options || []), ...items.map((r) => r[f.key]).filter(Boolean)])];
+      const dlId = `dl-${f.key}`;
+      return (
+        <Field key={f.key} label={`${f.label} (pick or type a new one)`}>
+          <input className={inputCls} value={v || ''} onChange={(e) => set(f.key, e.target.value)} list={dlId} placeholder="Pick or type new…" />
+          <datalist id={dlId}>
+            {existing.map((o) => <option key={o} value={o} />)}
+          </datalist>
+        </Field>
+      );
+    }
     if (f.type === 'image' || f.type === 'file') {
       return <UploadField key={f.key} label={f.label} value={v} bucket={f.bucket} accept={f.accept} setMsg={setMsg} library={f.type === 'image' ? mediaLibrary : []} onChange={(u) => set(f.key, u)} />;
     }
@@ -306,7 +318,7 @@ const TABLES = {
     fields: [
       { key: 'role', label: 'Role' },
       { key: 'organization', label: 'Organization' },
-      { key: 'category', label: 'Category', type: 'select', options: ['Research', 'Leadership', 'Volunteer', 'Fellowship', 'Club'] },
+      { key: 'category', label: 'Category', type: 'combo', options: ['Research', 'Leadership', 'Volunteer', 'Fellowship', 'Club'] },
       { key: 'location', label: 'Location' },
       { key: 'description', label: 'Description', type: 'textarea' },
     ],
@@ -332,7 +344,7 @@ const TABLES = {
   portfolio_items: {
     fields: [
       { key: 'title', label: 'Title' },
-      { key: 'category', label: 'Category', type: 'select', options: ['Animation', 'Poster', 'Art', 'Photography'] },
+      { key: 'category', label: 'Category', type: 'combo', options: ['Animation', 'Poster', 'Art', 'Photography'] },
       { key: 'media_type', label: 'Media type', type: 'select', options: ['image', 'video'] },
       { key: 'media_url', label: 'Media file', type: 'image', bucket: 'portfolio-media', accept: 'image/*,video/*' },
       { key: 'description', label: 'Description', type: 'textarea' },
@@ -352,7 +364,7 @@ const TABLES = {
       { key: 'organizer', label: 'Organizer' },
       { key: 'award_placement', label: 'Placement' },
       { key: 'year', label: 'Year', type: 'number' },
-      { key: 'category', label: 'Category', type: 'select', options: ['Poster', 'Art', 'Photography', 'Writing', 'Other'] },
+      { key: 'category', label: 'Category', type: 'combo', options: ['Poster', 'Art', 'Photography', 'Writing', 'Other'] },
       { key: 'description', label: 'Description', type: 'textarea' },
       { key: 'thumbnail_url', label: 'Photo', type: 'image', bucket: 'portfolio-media' },
     ],
@@ -377,7 +389,7 @@ const TABLES = {
   skills: {
     fields: [
       { key: 'label', label: 'Skill' },
-      { key: 'group_name', label: 'Group', type: 'select', options: ['Digital', 'Academic', 'Soft', 'Research Interest'] },
+      { key: 'group_name', label: 'Group', type: 'combo', options: ['Digital', 'Academic', 'Soft', 'Research Interest'] },
     ],
     defaults: { label: '', group_name: 'Digital', sort_order: 0 },
     labelOf: (r) => r.label || 'Untitled',

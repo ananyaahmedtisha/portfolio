@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
   User, Briefcase, FolderKanban, Image as ImageIcon,
   Award, Tags, Inbox, LogOut, Plus, Trash2, Save, RefreshCw,
   ExternalLink, Pencil, X, Upload, GraduationCap, PenLine, Sparkles,
-  Eye, EyeOff,
+  Eye, EyeOff, Images, Copy, Check,
 } from 'lucide-react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,6 +23,7 @@ const TABS = [
   { id: 'portfolio', label: 'Gallery', icon: ImageIcon },
   { id: 'achievements', label: 'Achievements', icon: Award },
   { id: 'blog', label: 'Blog', icon: PenLine },
+  { id: 'media', label: 'Media Library', icon: Images },
   { id: 'skills', label: 'Skills', icon: Tags },
   { id: 'inbox', label: 'Inbox', icon: Inbox },
 ];
@@ -42,8 +43,9 @@ function Field({ label, children }) {
 }
 
 /* Upload + preview field for images and files.
-   Once a file exists it shows preview + Edit; edit mode offers replace + remove. */
-function UploadField({ label, value, onChange, bucket = 'portfolio-media', accept = 'image/*', setMsg }) {
+   Once a file exists it shows preview + Edit; edit mode offers replace + remove.
+   `library` offers already-uploaded pictures from other segments. */
+function UploadField({ label, value, onChange, bucket = 'portfolio-media', accept = 'image/*', setMsg, library = [] }) {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const isPdf = accept.includes('pdf');
@@ -108,6 +110,19 @@ function UploadField({ label, value, onChange, bucket = 'portfolio-media', accep
             </button>
           </>
         )}
+        {library.length > 0 && (
+          <details className="rounded-lg bg-deepsea/[0.03] p-2">
+            <summary className="cursor-pointer px-1 py-1 text-xs font-bold text-deepsea/70">Choose an existing photo ({library.length})</summary>
+            <div className="mt-2 grid max-h-44 grid-cols-4 gap-1.5 overflow-auto">
+              {library.map((m, i) => (
+                <button key={`${m.url}-${i}`} type="button" title={`${m.title || ''} · ${m.source}`} onClick={() => { onChange(m.url); setEditing(false); }} className="overflow-hidden rounded-lg border-2 border-transparent transition hover:border-seafoam">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={m.url} alt={m.title || m.source} loading="lazy" className="h-14 w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
     </div>
   );
@@ -123,7 +138,7 @@ function CheckField({ label, value, onChange }) {
 }
 
 /* Generic list-first CRUD: rows with Edit, editor opens on selection */
-function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete, setMsg, msg, extraEditor }) {
+function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete, setMsg, msg, mediaLibrary = [], extraEditor }) {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(null);
 
@@ -163,7 +178,7 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
       );
     }
     if (f.type === 'image' || f.type === 'file') {
-      return <UploadField key={f.key} label={f.label} value={v} bucket={f.bucket} accept={f.accept} setMsg={setMsg} onChange={(u) => set(f.key, u)} />;
+      return <UploadField key={f.key} label={f.label} value={v} bucket={f.bucket} accept={f.accept} setMsg={setMsg} library={f.type === 'image' ? mediaLibrary : []} onChange={(u) => set(f.key, u)} />;
     }
     if (f.type === 'check') {
       return <CheckField key={f.key} label={f.label} value={v} onChange={(u) => set(f.key, u)} />;
@@ -215,6 +230,52 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* All uploaded pictures across every segment, in one place */
+function MediaLibraryTab({ library, onAddToGallery, setMsg }) {
+  const [copied, setCopied] = useState(null);
+  const [source, setSource] = useState('All');
+  const sources = ['All', ...new Set(library.map((m) => m.source))];
+  const shown = source === 'All' ? library : library.filter((m) => m.source === source);
+
+  function copy(u) {
+    navigator.clipboard.writeText(u);
+    setCopied(u);
+    setTimeout(() => setCopied(null), 1500);
+  }
+
+  return (
+    <div className="glass rounded-2xl p-5">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <h2 className="font-display mr-auto text-lg font-extrabold">({library.length})</h2>
+        {sources.map((s) => (
+          <button key={s} onClick={() => setSource(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${source === s ? 'bg-deepsea text-white' : 'border border-deepsea/15 bg-white hover:bg-seafoam-pale'}`}>{s}</button>
+        ))}
+      </div>
+      {shown.length === 0 && <p className="py-8 text-center text-sm text-deepsea/60">No uploads yet.</p>}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {shown.map((m, i) => (
+          <div key={`${m.url}-${i}`} className="overflow-hidden rounded-2xl border border-deepsea/10 bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={m.url} alt={m.title || m.source} loading="lazy" className="h-32 w-full object-cover" />
+            <div className="p-2.5">
+              <p className="truncate text-xs font-bold">{m.title || 'Untitled'}</p>
+              <p className="text-[11px] font-semibold text-seafoam-dark">{m.source}</p>
+              <div className="mt-2 flex gap-1.5">
+                <button onClick={() => copy(m.url)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-deepsea/5 px-2 py-1.5 text-[11px] font-bold transition hover:bg-seafoam-pale">
+                  {copied === m.url ? <Check size={12} /> : <Copy size={12} />} {copied === m.url ? 'Copied' : 'URL'}
+                </button>
+                <button onClick={() => onAddToGallery(m)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-seafoam px-2 py-1.5 text-[11px] font-bold text-white transition hover:bg-seafoam-dark">
+                  <Plus size={12} /> Gallery
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -276,6 +337,7 @@ const TABLES = {
       { key: 'media_url', label: 'Media file', type: 'image', bucket: 'portfolio-media', accept: 'image/*,video/*' },
       { key: 'description', label: 'Description', type: 'textarea' },
       { key: 'year', label: 'Year', type: 'number' },
+      { key: 'show_in_gallery', label: 'Show in gallery', type: 'check' },
       { key: 'show_on_home', label: 'Show on home', type: 'check' },
       { key: 'featured', label: 'Featured', type: 'check' },
     ],
@@ -478,6 +540,43 @@ export default function Admin() {
     setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
   }
 
+  /* Every uploaded picture across all segments */
+  const mediaLibrary = useMemo(() => {
+    const out = [];
+    const push = (u, source, title) => {
+      if (u && typeof u === 'string' && u.startsWith('http')) out.push({ url: u, source, title: title || '' });
+    };
+    if (rows.profile?.portrait_url) push(rows.profile.portrait_url, 'Profile', 'Portrait');
+    rows.academics.forEach((a) => push(a.image_url, 'Academics', a.institution));
+    rows.experience_photos.forEach((p) => {
+      const e = rows.experiences.find((x) => x.id === p.experience_id);
+      push(p.image_url, 'Experience', e ? e.role : p.caption);
+    });
+    rows.projects.forEach((p) => push(p.thumbnail_url, 'Projects', p.title));
+    rows.portfolio_items.forEach((p) => {
+      if (p.media_type !== 'video') push(p.media_url, 'Gallery', p.title);
+    });
+    rows.achievements.forEach((a) => push(a.thumbnail_url, 'Achievements', a.title));
+    rows.blog_posts.forEach((b) => push(b.cover_url, 'Blog', b.title));
+    return [...new Map(out.map((m) => [m.url, m])).values()];
+  }, [rows]);
+
+  async function addGalleryItem(m) {
+    const { error } = await sb.from('portfolio_items').insert([{
+      title: m.title || 'Untitled',
+      category: 'Photography',
+      media_type: 'image',
+      media_url: m.url,
+      description: `From ${m.source}`,
+      year: new Date().getFullYear(),
+      show_in_gallery: true,
+      show_on_home: false,
+      sort_order: rows.portfolio_items.length,
+    }]);
+    setMsg(error ? 'Add failed: ' + error.message : 'Added to Gallery successfully.');
+    if (!error) loadAll();
+  }
+
   /* Experience photos sub-editor */
   function ExperiencePhotos({ experienceId }) {
     const [caption, setCaption] = useState('');
@@ -642,7 +741,7 @@ export default function Admin() {
             </form>
           )}
 
-          {tab !== 'profile' && tab !== 'homepage' && tab !== 'inbox' && (
+          {tab !== 'profile' && tab !== 'homepage' && tab !== 'media' && tab !== 'inbox' && (
             <div className="glass rounded-2xl p-5">
               <h2 className="font-display mb-4 text-lg font-extrabold">{TABS.find((t) => t.id === tab)?.label}</h2>
               <CrudSection
@@ -653,6 +752,7 @@ export default function Admin() {
                 subOf={TABLES[tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab].subOf}
                 setMsg={setMsg}
                 msg={msg}
+                mediaLibrary={mediaLibrary}
                 onSave={(d, isNew) => handleSave(tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab, d, isNew)}
                 onDelete={(id) => handleDelete(tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab, id)}
                 extraEditor={tab === 'experiences' ? (draft, set) => <ExperiencePhotos experienceId={draft.id} /> : null}
@@ -681,6 +781,10 @@ export default function Admin() {
               <button className="mt-4 flex items-center gap-2 rounded-xl bg-seafoam px-6 py-3 font-bold text-white hover:bg-seafoam-dark"><Save size={16} /> Save</button>
               {msg && <p className={`mt-2 text-sm font-semibold ${msg.includes('failed') ? 'text-red-600' : 'text-seafoam-dark'}`}>{msg}</p>}
             </form>
+          )}
+
+          {tab === 'media' && (
+            <MediaLibraryTab library={mediaLibrary} onAddToGallery={addGalleryItem} setMsg={setMsg} />
           )}
 
           {tab === 'inbox' && (

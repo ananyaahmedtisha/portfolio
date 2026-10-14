@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowUpRight, Download, Briefcase, GraduationCap, Award, Camera, PenLine, FolderKanban, Sparkles } from 'lucide-react';
 import { PROFILE as FB_PROFILE, PORTFOLIO as FB_PORTFOLIO, EXPERIENCES as FB_EXP, PROJECTS as FB_PROJ, ACHIEVEMENTS as FB_ACH, BLOG_POSTS as FB_BLOG } from '@/lib/siteData';
 import { getSupabaseBrowser } from '@/lib/supabaseClient';
+import LightImage from '@/components/LightImage';
 import { SectionHead, fadeUp } from '@/components/ui';
 import { MovingGallery } from '@/components/MovingGallery';
 
@@ -164,8 +165,8 @@ export default function Home() {
         <MicrobeField />
         <div className="hero-grid pointer-events-none absolute inset-0" />
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 animate-drift rounded-full bg-seafoam/20 blur-3xl" />
-        <div className="relative grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
+        <div className="relative grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="order-2">
             <motion.div variants={fadeUp} initial="hidden" animate="show" className="inline-flex items-center gap-2.5 rounded-full border border-deepsea/15 bg-white/70 px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.18em] text-deepsea/80 dark:border-white/15 dark:bg-white/10 dark:text-white/80">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute h-full w-full animate-ping rounded-full bg-seafoam opacity-60" />
@@ -207,10 +208,9 @@ export default function Home() {
             </motion.div>
           </div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="mx-auto w-full max-w-[320px]">
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="order-1 mx-auto w-full max-w-[320px]">
             <div className="glass overflow-hidden rounded-[2rem] p-2.5 shadow-blue-soft">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={profile.portrait_url} alt={profile.full_name} className="aspect-[4/5] w-full rounded-[1.6rem] object-cover" />
+              <LightImage src={profile.portrait_url} alt={profile.full_name} caption={profile.full_name} className="aspect-[4/5] w-full rounded-[1.6rem] object-cover" />
             </div>
             <div className="mt-4 text-center">
               <a href={`mailto:${profile.email}`} className="font-display block truncate text-sm font-bold transition hover:text-seafoam-dark">{profile.email}</a>
@@ -275,8 +275,7 @@ export default function Home() {
           {FB_BLOG.map((b, i) => (
             <motion.div key={b.id} variants={fadeUp} initial="hidden" whileInView="show" custom={i} viewport={{ once: true }}>
               <Link href={`/blog/${b.id}`} className="glass block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={b.cover} alt={b.title} className="h-40 w-full object-cover" />
+                <LightImage src={b.cover} alt={b.title} caption={b.title} className="h-40 w-full object-cover" />
                 <span className="block p-5">
                   <span className="font-display block font-extrabold">{b.title}</span>
                   <span className="mt-1 block text-sm text-deepsea/60">{b.excerpt}</span>

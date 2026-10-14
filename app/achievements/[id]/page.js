@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAchievements } from '@/lib/liveData';
+import LightImage from '@/components/LightImage';
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -19,7 +20,7 @@ export default async function AchievementDetail({ params }) {
       <Link href="/achievements" className="text-sm font-bold text-seafoam-dark">← All achievements</Link>
       <div className="glass mt-4 overflow-hidden rounded-3xl shadow-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {a.cover && <img src={a.cover} alt={a.title} className="h-72 w-full object-cover" />}
+        {a.cover && <LightImage src={a.cover} alt={a.title} caption={a.title} className="h-72 w-full object-cover" />}
         <div className="p-7">
           <span className="rounded-full bg-seafoam px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{a.award_placement} · {a.year}</span>
           <h1 className="font-display mt-3 text-3xl font-extrabold">{a.title}</h1>
@@ -32,8 +33,7 @@ export default async function AchievementDetail({ params }) {
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           {a.photos.map((p, i) => (
             <figure key={i} className="glass overflow-hidden rounded-3xl shadow-card">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption} className="h-64 w-full object-cover" />
+              <LightImage src={p.url} alt={p.caption} caption={p.caption} className="h-64 w-full object-cover" />
               {p.caption && <figcaption className="p-4 text-sm text-deepsea/70">{p.caption}</figcaption>}
             </figure>
           ))}

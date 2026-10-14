@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPortfolio } from '@/lib/liveData';
+import LightImage from '@/components/LightImage';
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -21,8 +22,7 @@ export default async function GalleryDetail({ params }) {
         {p.media_type === 'video' ? (
           <video src={p.media_url} controls className="max-h-[75vh] w-full rounded-2xl bg-black object-contain" />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.media_url} alt={p.title} className="max-h-[75vh] w-full rounded-2xl object-contain" />
+          <LightImage src={p.media_url} alt={p.title} caption={p.title} className="max-h-[75vh] w-full rounded-2xl object-contain" />
         )}
         <div className="p-4">
           <span className="rounded-full bg-seafoam px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{p.category} · {p.year}</span>

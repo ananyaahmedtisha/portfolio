@@ -496,6 +496,7 @@ export default function Admin() {
         sb.from('site_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
       const withTags = (proj.data || []).map((p) => ({ ...p, tags_text: (p.tags || []).join(', ') }));
+      const withPub = (blogs.data || []).map((b) => ({ ...b, published: b.published !== false }));
       let achPhotos = [];
       try {
         const r = await sb.from('achievement_photos').select('*').order('sort_order');
@@ -524,7 +525,7 @@ export default function Admin() {
         messages: inbox.data || [],
         profile: bestProf,
         academics: acad.data || [],
-        blog_posts: blogs.data || [],
+        blog_posts: withPub,
         categories: cats,
       });
       if (bestProf) setProfileForm(bestProf);

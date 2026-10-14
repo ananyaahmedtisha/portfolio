@@ -458,7 +458,7 @@ export default function Admin() {
   const [tab, setTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
-  const [rows, setRows] = useState({ experiences: [], experience_photos: [], projects: [], portfolio_items: [], achievements: [], achievement_photos: [], skills: [], messages: [], profile: null, academics: [], blog_posts: [] });
+  const [rows, setRows] = useState({ experiences: [], experience_photos: [], projects: [], portfolio_items: [], achievements: [], achievement_photos: [], skills: [], messages: [], profile: null, academics: [], blog_posts: [], categories: [] });
   const [profileForm, setProfileForm] = useState(null);
   const [topicsText, setTopicsText] = useState('');
   const [heroFields, setHeroFields] = useState({ status_pill: '', role_line_1: '', role_line_2: '' });
@@ -518,6 +518,7 @@ export default function Admin() {
         profile: bestProf,
         academics: acad.data || [],
         blog_posts: blogs.data || [],
+        categories: cats,
       });
       if (bestProf) setProfileForm(bestProf);
       if (settings.data?.exploring_topics) setTopicsText(settings.data.exploring_topics.join('\n'));

@@ -446,7 +446,7 @@ export default function Admin() {
   const [tab, setTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
-  const [rows, setRows] = useState({ experiences: [], experience_photos: [], projects: [], portfolio_items: [], achievements: [], skills: [], messages: [], profile: null, academics: [], blog_posts: [] });
+  const [rows, setRows] = useState({ experiences: [], experience_photos: [], projects: [], portfolio_items: [], achievements: [], achievement_photos: [], skills: [], messages: [], profile: null, academics: [], blog_posts: [] });
   const [profileForm, setProfileForm] = useState(null);
   const [topicsText, setTopicsText] = useState('');
   const [heroFields, setHeroFields] = useState({ status_pill: '', role_line_1: '', role_line_2: '' });
@@ -476,6 +476,11 @@ export default function Admin() {
         sb.from('site_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
       const withTags = (proj.data || []).map((p) => ({ ...p, tags_text: (p.tags || []).join(', ') }));
+      let achPhotos = [];
+      try {
+        const r = await sb.from('achievement_photos').select('*').order('sort_order');
+        if (!r.error) achPhotos = r.data || [];
+      } catch {}
       const profRows = prof.data || [];
       const bestProf = [...profRows].sort((a, b) => ((b.resume_url ? 2 : 0) + (b.portrait_url ? 1 : 0)) - ((a.resume_url ? 2 : 0) + (a.portrait_url ? 1 : 0)))[0] || null;
       setRows({
@@ -484,6 +489,7 @@ export default function Admin() {
         projects: withTags,
         portfolio_items: port.data || [],
         achievements: ach.data || [],
+        achievement_photos: achPhotos,
         skills: ski.data || [],
         messages: inbox.data || [],
         profile: bestProf,
@@ -618,6 +624,10 @@ export default function Admin() {
       if (p.media_type !== 'video') push(p.media_url, 'Gallery', p.title);
     });
     rows.achievements.forEach((a) => push(a.thumbnail_url, 'Achievements', a.title));
+    rows.achievement_photos.forEach((p) => {
+      const a = rows.achievements.find((x) => x.id === p.achievement_id);
+      push(p.image_url, 'Achievements', a ? a.title : p.caption);
+    });
     rows.blog_posts.forEach((b) => push(b.cover_url, 'Blog', b.title));
     return [...new Map(out.map((m) => [m.url, m])).values()];
   }, [rows]);
@@ -638,11 +648,11 @@ export default function Admin() {
     if (!error) loadAll();
   }
 
-  /* Experience photos sub-editor */
-  function ExperiencePhotos({ experienceId }) {
+  /* Multi-photo sub-editor (experience + achievement) */
+  function PhotoSet({ table, fk, parentId, allPhotos, itemLabel }) {
     const [caption, setCaption] = useState('');
     const [fileBusy, setFileBusy] = useState(false);
-    const photos = rows.experience_photos.filter((p) => p.experience_id === experienceId);
+    const photos = allPhotos.filter((p) => p[fk] === parentId);
     async function addPhoto(e) {
       const f = e.target.files?.[0];
       if (!f) return;
@@ -652,7 +662,7 @@ export default function Admin() {
         const { error } = await sb.storage.from('portfolio-media').upload(path, f, { upsert: true });
         if (error) throw error;
         const { data } = sb.storage.from('portfolio-media').getPublicUrl(path);
-        const { error: dbErr } = await sb.from('experience_photos').insert([{ experience_id: experienceId, image_url: data.publicUrl, caption, sort_order: photos.length }]);
+        const { error: dbErr } = await sb.from(table).insert([{ [fk]: parentId, image_url: data.publicUrl, caption, sort_order: photos.length }]);
         if (dbErr) throw dbErr;
         setCaption('');
         setMsg('Photo added successfully.');
@@ -664,13 +674,13 @@ export default function Admin() {
     }
     async function delPhoto(id) {
       if (!confirm('Remove this photo?')) return;
-      await sb.from('experience_photos').delete().eq('id', id);
+      await sb.from(table).delete().eq('id', id);
       loadAll();
     }
-    if (!experienceId) return <p className="text-xs text-deepsea/50">Save the experience first, then add photos.</p>;
+    if (!parentId) return <p className="text-xs text-deepsea/50">Save the {itemLabel} first, then add photos. The first photo becomes the cover.</p>;
     return (
       <div className="rounded-xl bg-deepsea/[0.03] p-4">
-        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-deepsea/60">Photos ({photos.length})</p>
+        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-deepsea/60">Photos ({photos.length}) — first photo is the cover</p>
         <div className="grid gap-2">
           {photos.map((p) => (
             <div key={p.id} className="flex items-center gap-2 rounded-lg bg-white p-2">
@@ -816,7 +826,13 @@ export default function Admin() {
                 mediaLibrary={mediaLibrary}
                 onSave={(d, isNew) => handleSave(tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab, d, isNew)}
                 onDelete={(id) => handleDelete(tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab, id)}
-                extraEditor={tab === 'experiences' ? (draft, set) => <ExperiencePhotos experienceId={draft.id} /> : null}
+                extraEditor={
+                  tab === 'experiences'
+                    ? (draft) => <PhotoSet table="experience_photos" fk="experience_id" parentId={draft.id} allPhotos={rows.experience_photos} itemLabel="experience" />
+                    : tab === 'achievements'
+                      ? (draft) => <PhotoSet table="achievement_photos" fk="achievement_id" parentId={draft.id} allPhotos={rows.achievement_photos} itemLabel="achievement" />
+                      : null
+                }
               />
             </div>
           )}

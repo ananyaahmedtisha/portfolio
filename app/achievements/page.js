@@ -16,6 +16,9 @@ export default async function AchievementsPage() {
         {ACHIEVEMENTS.map((a, i) => (
           <Reveal key={a.id} delay={i % 3}>
             <Link href={`/achievements/${a.id}`} className="glass group block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
+              {a.cover && (
+                <img src={a.cover} alt={a.title} loading="lazy" className="h-44 w-full object-cover" />
+              )}
               <div className="flex items-center justify-between bg-gradient-to-r from-deepsea to-seafoam-dark p-4 text-white">
                 <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider"><Award size={15} /> {a.award_placement}</span>
                 <span className="rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold">{a.year}</span>

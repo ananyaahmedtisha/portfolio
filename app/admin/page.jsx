@@ -287,7 +287,7 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
 }
 
 /* All uploaded pictures across every segment, in one place */
-function MediaLibraryTab({ library, onAddToGallery, setMsg }) {
+function MediaLibraryTab({ library, onAddToGallery, msg }) {
   const [copied, setCopied] = useState(null);
   const [source, setSource] = useState('All');
   const sources = ['All', ...new Set(library.map((m) => m.source))];
@@ -307,6 +307,7 @@ function MediaLibraryTab({ library, onAddToGallery, setMsg }) {
           <button key={s} onClick={() => setSource(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${source === s ? 'bg-deepsea text-white' : 'border border-deepsea/15 bg-white hover:bg-seafoam-pale'}`}>{s}</button>
         ))}
       </div>
+      {msg && <p className={`mb-3 text-sm font-semibold ${msg.includes('failed') ? 'text-red-600' : 'text-seafoam-dark'}`}>{msg}</p>}
       {shown.length === 0 && <p className="py-8 text-center text-sm text-deepsea/60">No uploads yet.</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {shown.map((m, i) => (
@@ -861,7 +862,7 @@ export default function Admin() {
           )}
 
           {tab === 'media' && (
-            <MediaLibraryTab library={mediaLibrary} onAddToGallery={addGalleryItem} setMsg={setMsg} />
+            <MediaLibraryTab library={mediaLibrary} onAddToGallery={addGalleryItem} msg={msg} />
           )}
 
           {tab === 'inbox' && (

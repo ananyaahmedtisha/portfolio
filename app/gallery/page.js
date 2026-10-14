@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getPortfolio } from '@/lib/liveData';
+import { getPortfolio, getCategories } from '@/lib/liveData';
 import { SectionHead } from '@/components/ui';
 import Reveal from '@/components/Reveal';
 
@@ -8,8 +8,9 @@ export const revalidate = 60;
 
 export default async function GalleryPage({ searchParams }) {
   const PORTFOLIO = await getPortfolio();
+  const CATS_CFG = await getCategories();
   const f = searchParams?.cat || 'All';
-  const CATS = ['All', ...new Set(PORTFOLIO.map((p) => p.category).filter(Boolean))];
+  const CATS = ['All', ...new Set([...(CATS_CFG.Gallery || []), ...PORTFOLIO.map((p) => p.category).filter(Boolean)])];
   const items = (f === 'All' ? PORTFOLIO : PORTFOLIO.filter((p) => p.category === f)).filter((p) => p.media_url && p.show_in_gallery !== false);
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6">

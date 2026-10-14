@@ -6,7 +6,7 @@ import {
   User, Briefcase, FolderKanban, Image as ImageIcon,
   Award, Tags, Inbox, LogOut, Plus, Trash2, Save, RefreshCw,
   ExternalLink, Pencil, X, Upload, GraduationCap, PenLine, Sparkles,
-  Eye, EyeOff, Images, Copy, Check, ChevronDown,
+  Eye, EyeOff, Images, Copy, Check, ChevronDown, Shapes,
 } from 'lucide-react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,6 +23,7 @@ const TABS = [
   { id: 'portfolio', label: 'Gallery', icon: ImageIcon },
   { id: 'achievements', label: 'Achievements', icon: Award },
   { id: 'blog', label: 'Blog', icon: PenLine },
+  { id: 'categories', label: 'Categories', icon: Shapes },
   { id: 'media', label: 'Media Library', icon: Images },
   { id: 'skills', label: 'Skills', icon: Tags },
   { id: 'inbox', label: 'Inbox', icon: Inbox },
@@ -186,7 +187,7 @@ function CheckField({ label, value, onChange }) {
 }
 
 /* Generic list-first CRUD: rows with Edit, editor opens on selection */
-function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete, setMsg, msg, mediaLibrary = [], extraEditor }) {
+function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete, setMsg, msg, mediaLibrary = [], categoryOptions = {}, extraEditor }) {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(null);
 
@@ -226,7 +227,8 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
       );
     }
     if (f.type === 'combo') {
-      const existing = [...new Set([...(f.options || []), ...items.map((r) => r[f.key]).filter(Boolean)])];
+      const managed = (f.scope && categoryOptions[f.scope]) || [];
+      const existing = [...new Set([...(f.options || []), ...managed, ...items.map((r) => r[f.key]).filter(Boolean)])];
       return <ComboField key={f.key} label={f.label} value={v} options={existing} onChange={(u) => set(f.key, u)} />;
     }
     if (f.type === 'image' || f.type === 'file') {
@@ -359,7 +361,7 @@ const TABLES = {
     fields: [
       { key: 'role', label: 'Role' },
       { key: 'organization', label: 'Organization' },
-      { key: 'category', label: 'Category', type: 'combo', options: ['Research', 'Leadership', 'Volunteer', 'Fellowship', 'Club'] },
+      { key: 'category', label: 'Category', type: 'combo', scope: 'Experience', options: ['Research', 'Leadership', 'Volunteer', 'Fellowship', 'Club'] },
       { key: 'location', label: 'Location' },
       { key: 'description', label: 'Description', type: 'textarea' },
     ],
@@ -385,7 +387,7 @@ const TABLES = {
   portfolio_items: {
     fields: [
       { key: 'title', label: 'Title' },
-      { key: 'category', label: 'Category', type: 'combo', options: ['Animation', 'Poster', 'Art', 'Photography'] },
+      { key: 'category', label: 'Category', type: 'combo', scope: 'Gallery', options: ['Animation', 'Poster', 'Art', 'Photography'] },
       { key: 'media_type', label: 'Media type', type: 'select', options: ['image', 'video'] },
       { key: 'media_url', label: 'Media file', type: 'image', bucket: 'portfolio-media', accept: 'image/*,video/*' },
       { key: 'description', label: 'Description', type: 'textarea' },
@@ -405,7 +407,7 @@ const TABLES = {
       { key: 'organizer', label: 'Organizer' },
       { key: 'award_placement', label: 'Placement' },
       { key: 'year', label: 'Year', type: 'number' },
-      { key: 'category', label: 'Category', type: 'combo', options: ['Poster', 'Art', 'Photography', 'Writing', 'Other'] },
+      { key: 'category', label: 'Category', type: 'combo', scope: 'Achievement', options: ['Poster', 'Art', 'Photography', 'Writing', 'Other'] },
       { key: 'description', label: 'Description', type: 'textarea' },
       { key: 'thumbnail_url', label: 'Photo', type: 'image', bucket: 'portfolio-media' },
     ],
@@ -430,11 +432,20 @@ const TABLES = {
   skills: {
     fields: [
       { key: 'label', label: 'Skill' },
-      { key: 'group_name', label: 'Group', type: 'combo', options: ['Digital', 'Academic', 'Soft', 'Research Interest'] },
+      { key: 'group_name', label: 'Group', type: 'combo', scope: 'Skill', options: ['Digital', 'Academic', 'Soft', 'Research Interest'] },
     ],
     defaults: { label: '', group_name: 'Digital', sort_order: 0 },
     labelOf: (r) => r.label || 'Untitled',
     subOf: (r) => r.group_name || '',
+  },
+  categories: {
+    fields: [
+      { key: 'label', label: 'Category name' },
+      { key: 'scope', label: 'Used in', type: 'select', options: ['Gallery', 'Experience', 'Achievement', 'Skill'] },
+    ],
+    defaults: { label: '', scope: 'Gallery', sort_order: 0 },
+    labelOf: (r) => r.label || 'Untitled',
+    subOf: (r) => r.scope || '',
   },
 };
 
@@ -451,6 +462,7 @@ export default function Admin() {
   const [profileForm, setProfileForm] = useState(null);
   const [topicsText, setTopicsText] = useState('');
   const [heroFields, setHeroFields] = useState({ status_pill: '', role_line_1: '', role_line_2: '' });
+  const [managedCats, setManagedCats] = useState({ Gallery: [], Experience: [], Achievement: [], Skill: [] });
 
   useEffect(() => {
     if (!sb) return;
@@ -482,6 +494,16 @@ export default function Admin() {
         const r = await sb.from('achievement_photos').select('*').order('sort_order');
         if (!r.error) achPhotos = r.data || [];
       } catch {}
+      let cats = [];
+      try {
+        const r = await sb.from('categories').select('*').order('sort_order');
+        if (!r.error) cats = r.data || [];
+      } catch {}
+      const grouped = { Gallery: [], Experience: [], Achievement: [], Skill: [] };
+      cats.forEach((c) => {
+        if (grouped[c.scope] && !grouped[c.scope].includes(c.label)) grouped[c.scope].push(c.label);
+      });
+      setManagedCats(grouped);
       const profRows = prof.data || [];
       const bestProf = [...profRows].sort((a, b) => ((b.resume_url ? 2 : 0) + (b.portrait_url ? 1 : 0)) - ((a.resume_url ? 2 : 0) + (a.portrait_url ? 1 : 0)))[0] || null;
       setRows({
@@ -530,6 +552,8 @@ export default function Admin() {
     return rest;
   }
 
+  const CAT_FIELD = { experiences: ['category', 'Experience'], portfolio_items: ['category', 'Gallery'], achievements: ['category', 'Achievement'], skills: ['group_name', 'Skill'] };
+
   async function handleSave(table, draft, isNew) {
     const payload = clean(table, draft);
     let error;
@@ -539,6 +563,13 @@ export default function Admin() {
     } else {
       const res = await sb.from(table).update(payload).eq('id', draft.id);
       error = res.error;
+    }
+    if (!error && CAT_FIELD[table]) {
+      const [key, scope] = CAT_FIELD[table];
+      const val = (payload[key] || '').trim();
+      if (val && !(managedCats[scope] || []).some((c) => c.toLowerCase() === val.toLowerCase())) {
+        await sb.from('categories').insert([{ label: val, scope }]);
+      }
     }
     setMsg(error ? 'Save failed: ' + error.message : 'Saved successfully.');
     if (!error) loadAll();
@@ -825,6 +856,7 @@ export default function Admin() {
                 setMsg={setMsg}
                 msg={msg}
                 mediaLibrary={mediaLibrary}
+                categoryOptions={managedCats}
                 onSave={(d, isNew) => handleSave(tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab, d, isNew)}
                 onDelete={(id) => handleDelete(tab === 'portfolio' ? 'portfolio_items' : tab === 'blog' ? 'blog_posts' : tab, id)}
                 extraEditor={

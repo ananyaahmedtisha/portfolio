@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowUpRight, Download, Briefcase, GraduationCap, Award, Camera, PenLine, FolderKanban, Sparkles } from 'lucide-react';
-import { PROFILE as FB_PROFILE, PORTFOLIO as FB_PORTFOLIO, EXPERIENCES as FB_EXP, PROJECTS as FB_PROJ, ACHIEVEMENTS as FB_ACH, BLOG_POSTS as FB_BLOG } from '@/lib/siteData';
+import { PROFILE as FB_PROFILE, PORTFOLIO as FB_PORTFOLIO, EXPERIENCES as FB_EXP, PROJECTS as FB_PROJ, ACHIEVEMENTS as FB_ACH, BLOG_POSTS as FB_BLOG_FALLBACK } from '@/lib/siteData';
 import { getSupabaseBrowser } from '@/lib/supabaseClient';
 import { SectionHead, fadeUp } from '@/components/ui';
 import { MovingGallery } from '@/components/MovingGallery';
@@ -111,6 +111,7 @@ export default function Home() {
   const [exp0, setExp0] = useState(FB_EXP[0]);
   const [proj0, setProj0] = useState(FB_PROJ[0]);
   const [ach0, setAch0] = useState(FB_ACH[0]);
+  const [blogs, setBlogs] = useState(FB_BLOG_FALLBACK);
   const [topics, setTopics] = useState(FALLBACK_TOPICS);
   const [heroLines, setHeroLines] = useState({ line1: '', line2: '', pill: '' });
 
@@ -147,6 +148,12 @@ export default function Home() {
         if (projs?.length) setProj0({ title: projs[0].title, description: projs[0].description, id: projs[0].id });
         const { data: achs } = await sb.from('achievements').select('*').order('sort_order').limit(1);
         if (achs?.length) setAch0({ title: achs[0].title, description: achs[0].description, id: achs[0].id });
+        const { data: posts } = await sb.from('blog_posts').select('*').order('created_at', { ascending: false }).limit(3);
+        if (posts?.length) {
+          setBlogs(posts.filter((b) => b.published !== false).map((b) => ({
+            id: b.slug || b.id, title: b.title, excerpt: b.excerpt, cover: b.cover_url || '',
+          })));
+        }
         const { data: settings } = await sb.from('site_settings').select('exploring_topics,role_line_1,role_line_2,status_pill').eq('id', 1).maybeSingle();
         if (settings?.exploring_topics?.length) setTopics(settings.exploring_topics);
         if (settings) {
@@ -273,7 +280,7 @@ export default function Home() {
           <Link href="/blog" className="flex items-center gap-1 text-sm font-bold text-seafoam-dark hover:underline">All Writings <ArrowUpRight size={15} /></Link>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          {FB_BLOG.map((b, i) => (
+          {blogs.map((b, i) => (
             <motion.div key={b.id} variants={fadeUp} initial="hidden" whileInView="show" custom={i} viewport={{ once: true }}>
               <Link href={`/blog/${b.id}`} className="glass block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
                 <img src={b.cover} alt={b.title} className="aspect-[4/3] w-full object-cover" />

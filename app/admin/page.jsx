@@ -6,7 +6,7 @@ import {
   User, Briefcase, FolderKanban, Image as ImageIcon,
   Award, Tags, Inbox, LogOut, Plus, Trash2, Save, RefreshCw,
   ExternalLink, Pencil, X, Upload, GraduationCap, PenLine, Sparkles,
-  Eye, EyeOff, Images, Copy, Check,
+  Eye, EyeOff, Images, Copy, Check, ChevronDown,
 } from 'lucide-react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -128,6 +128,54 @@ function UploadField({ label, value, onChange, bucket = 'portfolio-media', accep
   );
 }
 
+/* Category-style field: real clickable dropdown + free text for new entries */
+function ComboField({ label, value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const all = [...new Set([...(options || []), ...(value ? [value] : [])])];
+  const q = (value || '').toLowerCase();
+  const shown = all.filter((o) => o.toLowerCase().includes(q));
+  const isNew = value && !all.some((a) => a.toLowerCase() === q);
+  function pick(v) {
+    onChange(v);
+    setOpen(false);
+  }
+  return (
+    <div className="block">
+      <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-deepsea/60">{label} (pick or type a new one)</span>
+      <div className="relative">
+        <input
+          className={`${inputCls} pr-10`}
+          value={value || ''}
+          onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          placeholder="Pick or type new…"
+        />
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Toggle options" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-deepsea/60 transition hover:text-seafoam-dark">
+          <ChevronDown size={17} />
+        </button>
+        {open && (
+          <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-48 overflow-auto rounded-xl border border-deepsea/10 bg-white shadow-blue-soft">
+            {shown.map((o) => (
+              <button key={o} type="button" onMouseDown={(e) => { e.preventDefault(); pick(o); }} className={`block w-full px-3.5 py-2.5 text-left text-sm transition hover:bg-seafoam-pale ${o === value ? 'font-bold text-seafoam-dark' : ''}`}>
+                {o}
+              </button>
+            ))}
+            {isNew && (
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); pick(value); }} className="block w-full border-t border-deepsea/10 px-3.5 py-2.5 text-left text-sm font-bold text-seafoam-dark transition hover:bg-seafoam-pale">
+                + Add “{value}”
+              </button>
+            )}
+            {shown.length === 0 && !isNew && (
+              <p className="px-3.5 py-2.5 text-sm text-deepsea/50">No matches — just type and Save.</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CheckField({ label, value, onChange }) {
   return (
     <label className="flex items-center gap-2.5 rounded-xl border border-deepsea/10 bg-white px-3.5 py-2.5 text-sm font-semibold">
@@ -179,15 +227,7 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
     }
     if (f.type === 'combo') {
       const existing = [...new Set([...(f.options || []), ...items.map((r) => r[f.key]).filter(Boolean)])];
-      const dlId = `dl-${f.key}`;
-      return (
-        <Field key={f.key} label={`${f.label} (pick or type a new one)`}>
-          <input className={inputCls} value={v || ''} onChange={(e) => set(f.key, e.target.value)} list={dlId} placeholder="Pick or type new…" />
-          <datalist id={dlId}>
-            {existing.map((o) => <option key={o} value={o} />)}
-          </datalist>
-        </Field>
-      );
+      return <ComboField key={f.key} label={f.label} value={v} options={existing} onChange={(u) => set(f.key, u)} />;
     }
     if (f.type === 'image' || f.type === 'file') {
       return <UploadField key={f.key} label={f.label} value={v} bucket={f.bucket} accept={f.accept} setMsg={setMsg} library={f.type === 'image' ? mediaLibrary : []} onChange={(u) => set(f.key, u)} />;

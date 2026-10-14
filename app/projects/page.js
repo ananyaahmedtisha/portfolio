@@ -18,7 +18,7 @@ export default async function ProjectsPage() {
           <Reveal key={p.id} delay={i % 2}>
             <article className="glass h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {p.cover && <img src={p.cover} alt={p.title} className="h-52 w-full object-cover" />}
+              {p.cover && <img src={p.cover} alt={p.title} className="aspect-[4/3] w-full object-cover" />}
               <div className="p-6">
                 {p.featured && <span className="mb-2 inline-block rounded-full bg-seafoam px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Featured</span>}
                 <h2 className="font-display text-xl font-extrabold">{p.title}</h2>

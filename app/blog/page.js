@@ -18,7 +18,7 @@ export default async function BlogPage() {
           <Reveal key={b.id} delay={i % 3}>
             <Link href={`/blog/${b.id}`} className="glass block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
               {b.cover ? (
-                <img src={b.cover} alt={b.title} className="h-44 w-full object-cover" />
+                <img src={b.cover} alt={b.title} className="aspect-[4/3] w-full object-cover" />
               ) : (
                 <div className="h-44 bg-gradient-to-br from-seafoam-pale to-alice" />
               )}

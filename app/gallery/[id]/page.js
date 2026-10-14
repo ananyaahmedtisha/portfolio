@@ -22,7 +22,7 @@ export default async function GalleryDetail({ params }) {
         {p.media_type === 'video' ? (
           <video src={p.media_url} controls className="max-h-[75vh] w-full rounded-2xl bg-black object-contain" />
         ) : (
-          <img src={p.media_url} alt={p.title} className="max-h-[75vh] w-full rounded-2xl object-contain" />
+          <img src={p.media_url} alt={p.title} className="aspect-[4/3] w-full rounded-2xl object-cover" />
         )}
         <div className="p-4">
           <span className="rounded-full bg-seafoam px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{p.category} · {p.year}</span>

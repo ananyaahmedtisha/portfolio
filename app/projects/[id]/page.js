@@ -21,7 +21,7 @@ export default async function ProjectDetail({ params }) {
       <Link href="/projects" className="text-sm font-bold text-seafoam-dark">← All projects</Link>
       <div className="glass mt-4 overflow-hidden rounded-3xl shadow-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.cover && <img src={p.cover} alt={p.title} className="h-72 w-full object-cover" />}
+        {p.cover && <img src={p.cover} alt={p.title} className="aspect-[4/3] w-full object-cover" />}
         <div className="p-7">
           <h1 className="font-display text-2xl font-extrabold sm:text-3xl">{p.title}</h1>
           <p className="font-semibold text-seafoam-dark">{p.subtitle}</p>
@@ -36,7 +36,7 @@ export default async function ProjectDetail({ params }) {
           <div className="mt-4 grid gap-5 md:grid-cols-2">
             {p.photos.map((ph, i) => (
               <figure key={i} className="glass overflow-hidden rounded-3xl shadow-card">
-                <img src={ph.url} alt={ph.caption} className="h-64 w-full object-cover" />
+                <img src={ph.url} alt={ph.caption} className="aspect-[4/3] w-full object-cover" />
                 {ph.caption && <figcaption className="p-4 text-sm text-deepsea/70">{ph.caption}</figcaption>}
               </figure>
             ))}

@@ -276,7 +276,7 @@ export default function Home() {
           {FB_BLOG.map((b, i) => (
             <motion.div key={b.id} variants={fadeUp} initial="hidden" whileInView="show" custom={i} viewport={{ once: true }}>
               <Link href={`/blog/${b.id}`} className="glass block h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
-                <img src={b.cover} alt={b.title} className="h-40 w-full object-cover" />
+                <img src={b.cover} alt={b.title} className="aspect-[4/3] w-full object-cover" />
                 <span className="block p-5">
                   <span className="font-display block font-extrabold">{b.title}</span>
                   <span className="mt-1 block text-sm text-deepsea/60">{b.excerpt}</span>

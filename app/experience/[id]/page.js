@@ -20,7 +20,7 @@ export default async function ExperienceDetail({ params }) {
       <Link href="/experience" className="text-sm font-bold text-seafoam-dark">← All experience</Link>
       <div className="glass mt-4 overflow-hidden rounded-3xl shadow-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {e.cover && <img src={e.cover} alt={e.role} className="h-72 w-full object-cover" />}
+        {e.cover && <img src={e.cover} alt={e.role} className="aspect-[4/3] w-full object-cover" />}
         <div className="p-7">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-deepsea px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{e.category}</span>
@@ -37,7 +37,7 @@ export default async function ExperienceDetail({ params }) {
           <div className="mt-4 grid gap-5 md:grid-cols-2">
             {e.photos.map((p, i) => (
               <figure key={i} className="glass overflow-hidden rounded-3xl shadow-card">
-                <img src={p.url} alt={p.caption} className="h-64 w-full object-cover" />
+                <img src={p.url} alt={p.caption} className="aspect-[4/3] w-full object-cover" />
                 {p.caption && <figcaption className="p-4 text-sm text-deepsea/70">{p.caption}</figcaption>}
               </figure>
             ))}

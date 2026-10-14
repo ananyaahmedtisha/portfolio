@@ -25,7 +25,7 @@ export default async function GalleryPage({ searchParams }) {
           <Reveal key={p.id} delay={i % 3}>
             <Link href={`/gallery/${p.id}`} className="group relative block min-h-[12rem] overflow-hidden rounded-3xl bg-deepsea-900 shadow-card">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.media_url} alt={p.title || 'Gallery image'} loading="lazy" className="w-full object-cover transition duration-700 group-hover:scale-105" />
+              <img src={p.media_url} alt={p.title || 'Gallery image'} loading="lazy" className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105" />
               <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-seafoam px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{p.category || 'Gallery'}</span>
               <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-deepsea-900/90 to-transparent p-4 pt-10 text-white">
                 <span className="font-display block text-sm font-bold">{p.title || 'Untitled'}</span>

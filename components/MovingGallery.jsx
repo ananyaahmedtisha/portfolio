@@ -13,7 +13,7 @@ export function MovingGallery({ items }) {
     <div className="overflow-hidden rounded-3xl">
       <div className="flex w-max animate-marquee gap-4 py-2">
         {doubled.map((p, i) => (
-          <Link key={`${p.id}-${i}`} href={`/gallery/${p.id}`} className="group relative block h-52 w-40 shrink-0 overflow-hidden rounded-2xl bg-deepsea-900 shadow-card sm:h-64 sm:w-52 md:h-72 md:w-64">
+          <Link key={`${p.id}-${i}`} href={`/gallery/${p.id}`} className="group relative block aspect-[4/3] w-56 shrink-0 overflow-hidden rounded-2xl bg-deepsea-900 shadow-card sm:w-64">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={p.media_url}

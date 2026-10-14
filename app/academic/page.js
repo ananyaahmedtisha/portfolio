@@ -18,7 +18,7 @@ export default async function AcademicPage() {
           <Reveal key={a.id} delay={i % 3}>
             <article className="glass h-full overflow-hidden rounded-3xl shadow-card transition hover:-translate-y-1">
               {a.image_url ? (
-                <img src={a.image_url} alt={a.institution} className="h-44 w-full object-cover" />
+                <img src={a.image_url} alt={a.institution} className="aspect-[4/3] w-full object-cover" />
               ) : (
                 <div className="flex h-44 items-center justify-center bg-gradient-to-br from-seafoam-pale to-alice text-seafoam-dark"><GraduationCap size={40} /></div>
               )}

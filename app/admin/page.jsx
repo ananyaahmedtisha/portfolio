@@ -249,6 +249,7 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
         <h2 className="font-display text-lg font-extrabold">({items.length})</h2>
         <button onClick={startNew} className={btnDark}><Plus size={14} /> Add new</button>
       </div>
+      {msg && <p className={`mb-3 text-sm font-semibold ${msg.includes('failed') ? 'text-red-600' : 'text-seafoam-dark'}`}>{msg}</p>}
 
       {!editingId && (
         <div className="grid gap-3">
@@ -291,6 +292,7 @@ function CrudSection({ items, fields, defaults, labelOf, subOf, onSave, onDelete
 /* All uploaded pictures across every segment, in one place */
 function MediaLibraryTab({ library, onAddToGallery, msg }) {
   const [copied, setCopied] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [source, setSource] = useState('All');
   const sources = ['All', ...new Set(library.map((m) => m.source))];
   const shown = source === 'All' ? library : library.filter((m) => m.source === source);
@@ -301,6 +303,11 @@ function MediaLibraryTab({ library, onAddToGallery, msg }) {
     setTimeout(() => setCopied(null), 1500);
   }
 
+  async function add(m) {
+    const r = await onAddToGallery(m);
+    if (r) setNotice(r);
+  }
+
   return (
     <div className="glass rounded-2xl p-5">
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -309,7 +316,7 @@ function MediaLibraryTab({ library, onAddToGallery, msg }) {
           <button key={s} onClick={() => setSource(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${source === s ? 'bg-deepsea text-white' : 'border border-deepsea/15 bg-white hover:bg-seafoam-pale'}`}>{s}</button>
         ))}
       </div>
-      {msg && <p className={`mb-3 text-sm font-semibold ${msg.includes('failed') ? 'text-red-600' : 'text-seafoam-dark'}`}>{msg}</p>}
+      {(notice?.text || msg) && <p className={`mb-3 text-sm font-semibold ${(notice?.ok === false || (msg || '').includes('failed')) ? 'text-red-600' : 'text-seafoam-dark'}`}>{notice?.text || msg}</p>}
       {shown.length === 0 && <p className="py-8 text-center text-sm text-deepsea/60">No uploads yet.</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {shown.map((m, i) => (
@@ -323,7 +330,7 @@ function MediaLibraryTab({ library, onAddToGallery, msg }) {
                 <button onClick={() => copy(m.url)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-deepsea/5 px-2 py-1.5 text-[11px] font-bold transition hover:bg-seafoam-pale">
                   {copied === m.url ? <Check size={12} /> : <Copy size={12} />} {copied === m.url ? 'Copied' : 'URL'}
                 </button>
-                <button onClick={() => onAddToGallery(m)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-seafoam px-2 py-1.5 text-[11px] font-bold text-white transition hover:bg-seafoam-dark">
+                <button onClick={() => add(m)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-seafoam px-2 py-1.5 text-[11px] font-bold text-white transition hover:bg-seafoam-dark">
                   <Plus size={12} /> Gallery
                 </button>
               </div>
@@ -677,8 +684,10 @@ export default function Admin() {
       show_on_home: false,
       sort_order: rows.portfolio_items.length,
     }]);
-    setMsg(error ? 'Add failed: ' + error.message : 'Added to Gallery successfully.');
+    const text = error ? 'Add failed: ' + error.message : 'Added to Gallery successfully.';
+    setMsg(text);
     if (!error) loadAll();
+    return { ok: !error, text };
   }
 
   /* Multi-photo sub-editor (experience + achievement) */
